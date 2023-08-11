@@ -1,3 +1,4 @@
 # ArtiwiseDenoiseNN
 
-64x64 çözünürlüğünde görüntü verisi alıp görüntü üzerinde bulunan gürültüleri temizleyen model implementasyonunu içerir.
+Talimatlı işlemler, mal varlığı dondurma gibi projelerde preprocessing aşaması olarak çalıştırılabilecek noise temizleme
+model servisi
