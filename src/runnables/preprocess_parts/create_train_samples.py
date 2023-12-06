@@ -8,8 +8,8 @@ pipeline üzerinden çalıştırıldığı için aşağıdaki path bilgileri gü
 """
 
 
-def save_random_crops(original_image, noisy_image, x_train_dir, y_train_dir, idx, k=64):
-    for i in range(200):
+def save_random_crops(original_image, noisy_image, x_train_dir, y_train_dir, idx, n_crops=1000, k=64):
+    for i in range(n_crops):
         # Rastgele bir başlangıç noktası seç
         x = np.random.randint(original_image.shape[1] - k)
         y = np.random.randint(original_image.shape[0] - k)

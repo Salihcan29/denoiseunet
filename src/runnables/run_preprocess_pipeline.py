@@ -17,7 +17,7 @@ from src.runnables.preprocess_parts.noise_generator import NoiseGenerator
 from src.runnables.preprocess_parts.pdf_to_png import pdf_to_png
 
 
-def run(image_size=64):
+def run(crops_per_pdf=1000, image_size=64):
     # PDF leri png formatına dönüştürme aşaması
     source_dir = './data/preprocess/original_pdfs/'
     target_dir = './data/preprocess/original_pngs/'
@@ -29,12 +29,32 @@ def run(image_size=64):
     for filename in os.listdir(source_dir):
         if filename.endswith(".png"):
             image_path = os.path.join(source_dir, filename)
+
             image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            temp = noise_generator.addPixels(image, blackProb=0.12, whiteProb=0.12)
+            noisy_image_path = os.path.join(target_dir, filename[:-4]+'_addPixels.png')
+            cv2.imwrite(noisy_image_path, temp)
 
-            noise_generator.addPixels(image, 0.15, 0.15)
+            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            temp = noise_generator.addSpeckleNoise(image, speckle_intensity=0.4)
+            noisy_image_path = os.path.join(target_dir, filename[:-4] + '_speckleIntensity.png')
+            cv2.imwrite(noisy_image_path, temp)
 
-            noisy_image_path = os.path.join(target_dir, filename)
-            cv2.imwrite(noisy_image_path, image)
+            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            temp = noise_generator.makeGrayNoiseAreas(image, noise_prob=0.4)
+            noisy_image_path = os.path.join(target_dir, filename[:-4] + '_grayNoiseAreas.png')
+            cv2.imwrite(noisy_image_path, temp)
+
+            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            temp = noise_generator.addRandomLines(image, line_num=500, line_thickness=1, line_color=192)
+            noisy_image_path = os.path.join(target_dir, filename[:-4] + '_addRandomLines.png')
+            cv2.imwrite(noisy_image_path, temp)
+
+            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            temp = noise_generator.addBlur(image, blur_strength=0.5)
+            noisy_image_path = os.path.join(target_dir, filename[:-4] + '_addBlur.png')
+            cv2.imwrite(noisy_image_path, temp)
+
 
     print("Tüm resim dosyalarına gürültü eklendi.")
 
@@ -44,11 +64,25 @@ def run(image_size=64):
     y_train_dir = './data/dataset/y_train/'
     x_train_dir = './data/dataset/x_train/'
     idx = 0
+
+    functions = ['addPixels',
+                 'speckleIntensity',
+                 'grayNoiseAreas',
+                 'addRandomLines',
+                 'addBlur']
+
     for filename in os.listdir(original_dir):
         if filename.endswith(".png"):
             original_image = cv2.imread(os.path.join(original_dir, filename), cv2.IMREAD_GRAYSCALE)
-            noisy_image = cv2.imread(os.path.join(noisy_dir, filename), cv2.IMREAD_GRAYSCALE)
 
-            idx = save_random_crops(original_image, noisy_image, x_train_dir, y_train_dir, idx, k=image_size)
+            for function in functions:
+                noisy_image = cv2.imread(os.path.join(noisy_dir, f'{filename[:-4]}_{function}.png'), cv2.IMREAD_GRAYSCALE)
+                idx = save_random_crops(original_image,
+                                        noisy_image,
+                                        x_train_dir,
+                                        y_train_dir,
+                                        idx,
+                                        n_crops=crops_per_pdf,
+                                        k=image_size)
 
     print("Tüm parçalar kaydedildi.")
